@@ -1,0 +1,12 @@
+[workspace]
+resolver = "2"
+members = ["lib"]
+
+[package]
+name = "bin"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+hot-lib-reloader = "^0.6"
+lib = { path = "lib" }
