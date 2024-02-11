@@ -11,21 +11,25 @@ use glfw::{
 
 use crate::context::Context;
 
-pub use ::glm::Vector3;
+extern crate nalgebra_glm as glm;
+
+pub use glm::Vec3;
+pub use glm::vec3;
 pub use glfw::Key;
 pub use glfw::WindowEvent;
 
 pub mod buffer;
 pub mod camera;
 pub mod context;
-pub mod glm;
+pub mod flatten;
 pub mod object;
 pub mod scene;
 pub mod shader;
 pub mod vertexarray;
+pub mod listener;
 
-use scene::Scene;
 use shader::ShaderProgram;
+use listener::Listener;
 
 pub struct App {
     window: PWindow,
@@ -73,7 +77,7 @@ impl App {
         }
     }
 
-    pub fn run(&mut self, mut context: &mut Context, mut scenes: &mut Vec<Scene>) {
+    pub fn run(&mut self, mut context: &mut Context, listener: Listener) {
         use gl::*;
 
         self.window.make_current();
@@ -89,6 +93,11 @@ impl App {
 
             self.glfw.poll_events();
 
+            if context.current_scene > context.scenes.len() {
+                let _ = glfw::flush_messages(&self.events);
+                continue;
+            }
+
             for (_, event) in glfw::flush_messages(&self.events) {
                 match event {
                     glfw::WindowEvent::Close => self.window.set_should_close(true),
@@ -96,27 +105,15 @@ impl App {
                         Viewport(0, 0, w as i32, h as i32);
                     },
                     _ => {
-                        if context.current_scene > scenes.len() {
-                            continue;
-                        }
-
-                        if let Some(listener) = &context.current(scenes).on_event {
-                            unsafe {
-                                (*context, *scenes) = listener(scenes, context, event);
-                            }
+                        if let Some(ref listener) = listener.on_event {
+                            context = listener(context, event);
                         }
                     }
                 }
             }
 
-            if context.current_scene > scenes.len() {
-                continue;
-            }
-
-            unsafe {
-                if let Some(listener) = &(*context.current(scenes)).on_update {
-                    (*context, *scenes) = listener(scenes, context, delta);
-                }
+            if let Some(ref listener) = listener.on_update {
+                context = listener(context, delta);
             }
 
             unsafe {
@@ -125,7 +122,7 @@ impl App {
 
             // draw stuff
             context.camera.send_to_shader(&self.shader);
-            context.current(scenes).render();
+            context.current_mut().render();
 
             self.window.swap_buffers();
         }

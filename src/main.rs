@@ -12,33 +12,46 @@ fn main() {
     //     radius: 1,
     // }));
     let verts = &vec![
-        [-0.5, 0.5, 0.0],
-        [0.5, 0.5, 0.0],
-        [0.5, -0.5, 0.0],
-        [-0.5, -0.5, 0.0],
+        [-0.5,  0.5, -9.0],
+        [ 0.5,  0.5, -9.0],
+        [ 0.5, -0.5, -9.0],
+        [-0.5, -0.5, -9.0],
     ];
     let indicies = &vec![[0, 1, 3], [1, 2, 3]];
     scene.add_object(hot::object::Object::new(verts.to_vec(), indicies.to_vec()));
     scene.add_object(hot::object::Object::new(
-        vec![[0.0, 1.0, 0.0], [1.0, 1.0, 0.0], [1.0, 0.0, 0.0]],
+        vec![[0.0, 1.0, -10.0], [1.0, 1.0, -10.0], [1.0, 0.0, -10.0]],
         vec![[0, 1, 2]],
     ));
     scene.set_refresh_color((0.2, 0.3, 0.3, 1.0));
-    scene.attach_on_event(move_camera);
+
+    let mut listeners = hot::listener::Listener::default();
+    listeners.attach_on_event(move_camera);
     
-    let context = hot::context::Context {
+    let mut context = hot::context::Context {
         scenes: vec![scene],
         current_scene: 0,
-        camera: hot::camera::Camera::new(800 / 600)
+        camera: hot::camera::Camera::new(800. / 600.)
     };
 
-    app.run(&mut context)
+    app.run(&mut context, listeners)
 }
 
-fn move_camera(context: hot::context::Context, ev: hot::WindowEvent) -> hot::context::Context {
+fn move_camera(context: &mut hot::context::Context, ev: hot::WindowEvent) -> &mut hot::context::Context {
     match ev {
-        hot::WindowEvent::Key(hot::Key::W, _, _, _) => context.camera.translate(hot::Vector3 { 0, -1, 0 }),
+        hot::WindowEvent::Key(hot::Key::W, _, _, _) => {
+            context.camera.translate(hot::vec3(0.0, 0.0, -1.0));
+        },
+        hot::WindowEvent::Key(hot::Key::S, _, _, _) => {
+            context.camera.translate(hot::vec3(0.0, 0.0, 1.0));
+        },
+        hot::WindowEvent::Key(hot::Key::A, _, _, _) => {
+            context.camera.translate(hot::vec3(-1.0, 0.0, 0.0));
+        },
+        hot::WindowEvent::Key(hot::Key::D, _, _, _) => {
+            context.camera.translate(hot::vec3(1.0, 0.0, 0.0));
+        },
         _ => {}
-    }
+    };
     context
 }
