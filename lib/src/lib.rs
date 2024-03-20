@@ -2,21 +2,19 @@
 use std::{
     sync::{Arc, Mutex},
     time::SystemTime,
+    ops::Deref,
 };
 
 use glfw::Context as GContext;
-use glfw::{
-    fail_on_errors, Glfw, GlfwReceiver, OpenGlProfileHint, PWindow, WindowHint, WindowMode,
-};
+use std::time::Duration;
+use std::rc::Weak;
 
 use crate::context::Context;
 
 extern crate nalgebra_glm as glm;
 
-pub use glm::Vec3;
-pub use glm::vec3;
-pub use glfw::Key;
-pub use glfw::WindowEvent;
+pub use glm::*;
+pub use glfw::*;
 
 pub mod buffer;
 pub mod camera;
@@ -31,15 +29,16 @@ pub mod listener;
 use shader::ShaderProgram;
 use listener::Listener;
 
-pub struct App {
-    window: PWindow,
+pub struct AppData {
     glfw: Glfw,
-    events: GlfwReceiver<(f64, WindowEvent)>,
-    shader: ShaderProgram,
+}
+
+pub struct App {
+    pub data: AppData,
 }
 
 impl App {
-    pub fn new(title: String, size: (u32, u32)) -> Self {
+    pub fn new() -> Self {
         let mut glfw = glfw::init(fail_on_errors!()).unwrap();
 
         glfw.window_hint(WindowHint::ContextVersionMajor(4));
@@ -54,7 +53,17 @@ impl App {
             glfw.window_hint(WindowHint::OpenGlDebugContext(true));
         }
 
-        let (mut window, events) = glfw
+        Self {
+            data: AppData {
+                glfw,
+            }
+        }
+    }
+
+    pub fn run<T: Program>(&mut self, program: &mut T, mut context: Context, title: &str, size: (u32, u32)) {
+        use gl::*;
+
+        let (mut window, events) = self.data.glfw
             .create_window(size.0, size.1, &title, WindowMode::Windowed)
             .expect("Could not create glfw window and context");
 
@@ -65,66 +74,63 @@ impl App {
             gl::Viewport(0, 0, size.0 as i32, size.1 as i32);
         }
 
-        Self {
-            window,
-            glfw,
-            events,
-            shader: ShaderProgram::from_vert_frag(
-                include_str!("default.vert"),
-                include_str!("default.frag"),
-            )
-            .unwrap(),
-        }
-    }
+        let mut shader = ShaderProgram::from_vert_frag(
+            include_str!("default.vert"),
+            include_str!("default.frag"),
+        ).unwrap();
 
-    pub fn run(&mut self, mut context: &mut Context, listener: Listener) {
-        use gl::*;
+        program.init(&mut context);
 
-        self.window.make_current();
-        self.window.set_key_polling(true);
-        self.shader.use_program();
+        let mut data = &mut self.data;
+
+        window.make_current();
+        window.set_all_polling(true);
+        shader.use_program();
 
         let mut now = SystemTime::now();
-        while !self.window.should_close() {
+        while !window.should_close() {
             let delta = now.elapsed().unwrap();
             now = SystemTime::now();
 
-            // let scene = &mut self.scenes[self.current_scene as usize];
+            // let scene = &mut scenes[self.current_scene as usize];
 
-            self.glfw.poll_events();
+            data.glfw.poll_events();
 
             if context.current_scene > context.scenes.len() {
-                let _ = glfw::flush_messages(&self.events);
+                let _ = glfw::flush_messages(&events);
                 continue;
             }
 
-            for (_, event) in glfw::flush_messages(&self.events) {
+            for (_, event) in glfw::flush_messages(&events) {
                 match event {
-                    glfw::WindowEvent::Close => self.window.set_should_close(true),
+                    glfw::WindowEvent::Close => window.set_should_close(true),
                     glfw::WindowEvent::ContentScale(w, h) => unsafe {
                         Viewport(0, 0, w as i32, h as i32);
+                        program.on_event(event, &mut context);
                     },
                     _ => {
-                        if let Some(ref listener) = listener.on_event {
-                            context = listener(context, event);
-                        }
+                        program.on_event(event, &mut context);
                     }
                 }
             }
 
-            if let Some(ref listener) = listener.on_update {
-                context = listener(context, delta);
-            }
+            program.on_update(delta, &mut context);
 
             unsafe {
                 Clear(COLOR_BUFFER_BIT);
             }
 
             // draw stuff
-            context.camera.send_to_shader(&self.shader);
+            context.camera.send_to_shader(&shader);
             context.current_mut().render();
 
-            self.window.swap_buffers();
+            window.swap_buffers();
         }
     }
+}
+
+pub trait Program {
+    fn on_event(&mut self, ev: WindowEvent, data: &mut Context) {}
+    fn on_update(&mut self, ev: Duration, data: &mut Context) {}
+    fn init(&mut self, data: &mut Context) {}
 }
