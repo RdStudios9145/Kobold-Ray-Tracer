@@ -1,3 +1,5 @@
+use crate::quaternion::Quaternion;
+
 pub type Vertex = [f32; 3];
 pub type TriIndexes = [u32; 3];
 
@@ -9,6 +11,7 @@ pub struct Object {
     pub(super) vbo_id: u32,
     pub(super) ebo_id: u32,
     pub(super) ids_generated: bool,
+    pub(super) orientation: Quaternion,
 }
 
 impl Object {
@@ -20,6 +23,7 @@ impl Object {
             vbo_id: 0,
             ebo_id: 0,
             ids_generated: false,
+            orientation: Quaternion::new(0.0, 0.0, 0.0, 0.0),
         }
     }
 
@@ -31,6 +35,7 @@ impl Object {
             vbo_id: 0,
             ebo_id: 0,
             ids_generated: false,
+            orientation: Quaternion::new(0.0, 0.0, 0.0, 0.0),
         }
     }
 
@@ -42,6 +47,7 @@ impl Object {
             vbo_id: 0,
             ebo_id: 0,
             ids_generated: false,
+            orientation: Quaternion::new(0.0, 0.0, 0.0, 0.0),
         }
     }
 }

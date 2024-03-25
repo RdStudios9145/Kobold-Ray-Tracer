@@ -1,10 +1,12 @@
 use crate::camera::Camera;
 use crate::scene::Scene;
+use glfw::PWindow;
 
 pub struct Context {
     pub current_scene: usize,
     pub scenes: Vec<Scene>,
     pub camera: Camera,
+    pub window: PWindow,
 }
 
 impl Context {

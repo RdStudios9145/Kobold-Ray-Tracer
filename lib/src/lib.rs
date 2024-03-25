@@ -2,12 +2,10 @@
 use std::{
     sync::{Arc, Mutex},
     time::SystemTime,
-    ops::Deref,
 };
 
 use glfw::Context as GContext;
 use std::time::Duration;
-use std::rc::Weak;
 
 use crate::context::Context;
 
@@ -24,10 +22,10 @@ pub mod object;
 pub mod scene;
 pub mod shader;
 pub mod vertexarray;
-pub mod listener;
+pub mod quaternion;
 
 use shader::ShaderProgram;
-use listener::Listener;
+use camera::Camera;
 
 pub struct AppData {
     glfw: Glfw,
@@ -60,7 +58,7 @@ impl App {
         }
     }
 
-    pub fn run<T: Program>(&mut self, program: &mut T, mut context: Context, title: &str, size: (u32, u32)) {
+    pub fn run<T: Program>(&mut self, program: &mut T, title: &str, size: (u32, u32)) {
         use gl::*;
 
         let (mut window, events) = self.data.glfw
@@ -74,21 +72,28 @@ impl App {
             gl::Viewport(0, 0, size.0 as i32, size.1 as i32);
         }
 
-        let mut shader = ShaderProgram::from_vert_frag(
+        let shader = ShaderProgram::from_vert_frag(
             include_str!("default.vert"),
             include_str!("default.frag"),
         ).unwrap();
 
+        let mut context = Context {
+            window,
+            scenes: vec![],
+            current_scene: 0,
+            camera: Camera::new(1.0),
+        };
+
         program.init(&mut context);
 
-        let mut data = &mut self.data;
+        let data = &mut self.data;
 
-        window.make_current();
-        window.set_all_polling(true);
+        context.window.make_current();
+        context.window.set_all_polling(true);
         shader.use_program();
 
         let mut now = SystemTime::now();
-        while !window.should_close() {
+        while !context.window.should_close() {
             let delta = now.elapsed().unwrap();
             now = SystemTime::now();
 
@@ -103,7 +108,7 @@ impl App {
 
             for (_, event) in glfw::flush_messages(&events) {
                 match event {
-                    glfw::WindowEvent::Close => window.set_should_close(true),
+                    glfw::WindowEvent::Close => context.window.set_should_close(true),
                     glfw::WindowEvent::ContentScale(w, h) => unsafe {
                         Viewport(0, 0, w as i32, h as i32);
                         program.on_event(event, &mut context);
@@ -124,13 +129,13 @@ impl App {
             context.camera.send_to_shader(&shader);
             context.current_mut().render();
 
-            window.swap_buffers();
+            context.window.swap_buffers();
         }
     }
 }
 
 pub trait Program {
-    fn on_event(&mut self, ev: WindowEvent, data: &mut Context) {}
-    fn on_update(&mut self, ev: Duration, data: &mut Context) {}
-    fn init(&mut self, data: &mut Context) {}
+    fn on_event(&mut self, _ev: WindowEvent, _data: &mut Context) {}
+    fn on_update(&mut self, _ev: Duration, _data: &mut Context) {}
+    fn init(&mut self, _data: &mut Context) {}
 }

@@ -6,17 +6,18 @@ mod hot {
 
 use hot::*;
 use std::time::Duration;
-use std::cell::RefCell;
-use std::rc::Rc;
 
 #[derive(Default)]
 struct Game {
     mouse_locked: bool,
+    time: Duration,
 }
 
 impl Program for Game {
     fn init(&mut self, data: &mut context::Context) {
-        data.scenes[0].set_refresh_color((0.2, 0.3, 0.3, 1.0));
+        let scene = create_scene();
+        data.scenes = vec![scene];
+        data.camera = camera::Camera::new(800. / 600.);
     }
 
     fn on_event(&mut self, ev: WindowEvent, context: &mut context::Context) {
@@ -40,24 +41,39 @@ impl Program for Game {
                 context.camera.translate(vec3(0.0, -1.0, 0.0));
             },
             WindowEvent::Key(Key::Escape, _, _, _) => {
+                if self.mouse_locked {
+                    context.window.set_cursor_mode(CursorMode::Normal);
+                }
+
                 self.mouse_locked = false;
-                
             },
             WindowEvent::MouseButton(MouseButtonLeft, Action::Release, _) => {
+                if !self.mouse_locked {
+                    context.window.set_cursor_mode(CursorMode::Disabled);
+                }
+
                 self.mouse_locked = true;
             }
             _ => {}
         };
     }
+
+    fn on_update(&mut self, delta: Duration, data: &mut context::Context) {
+        self.time += delta;
+        let secs = self.time.as_secs() as f32;
+        data.camera.orientation = quaternion::Quaternion::new(0.0, 0.0, secs / 10.0, secs / 10.0);
+    }
 }
 
 fn main() {
     let mut app = App::new();
+    let mut game = Game::default();
+    app.run(&mut game, "Test Game!", (800, 600));
+}
+
+fn create_scene() -> scene::Scene {
     let mut scene = scene::Scene::new();
-    // scene.add_object(object::Object::new(object::ObjectType::Sphere {
-    //     center: point::Point(1, 1, 1),
-    //     radius: 1,
-    // }));
+
     let verts = &vec![
         [-1.0,  1.0, -1.0],
         [ 1.0,  1.0, -1.0],
@@ -74,13 +90,8 @@ fn main() {
         vec![[0.0, 1.0, -10.0], [1.0, 1.0, -10.0], [1.0, 0.0, -10.0]],
         vec![[0, 1, 2]],
     ));
-    
-    let mut context = context::Context {
-        scenes: vec![scene],
-        current_scene: 0,
-        camera: camera::Camera::new(800. / 600.)
-    };
 
-    let mut game = Game::default();
-    app.run(&mut game, context, "Test Game!", (800, 600));
+    scene.set_refresh_color((0.2, 0.3, 0.3, 1.0));
+
+    scene
 }
