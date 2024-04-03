@@ -7,6 +7,8 @@ mod hot {
 use hot::*;
 use std::time::Duration;
 
+const PI: f32 = 3.14159265358979323;
+
 #[derive(Default)]
 struct Game {
     mouse_locked: bool,
@@ -18,6 +20,7 @@ impl Program for Game {
         let scene = create_scene();
         data.scenes = vec![scene];
         data.camera = camera::Camera::new(800. / 600.);
+        data.camera.translate(vec3(0.0, 0.0, 5.0));
     }
 
     fn on_event(&mut self, ev: WindowEvent, context: &mut context::Context) {
@@ -40,9 +43,11 @@ impl Program for Game {
             WindowEvent::Key(Key::LeftShift, _, _, _) => {
                 context.camera.translate(vec3(0.0, -1.0, 0.0));
             },
-            WindowEvent::Key(Key::Escape, _, _, _) => {
+            WindowEvent::Key(Key::Escape, _, Action::Release, _) => {
                 if self.mouse_locked {
                     context.window.set_cursor_mode(CursorMode::Normal);
+                } else {
+                    context.window.set_should_close(true);
                 }
 
                 self.mouse_locked = false;
@@ -60,8 +65,11 @@ impl Program for Game {
 
     fn on_update(&mut self, delta: Duration, data: &mut context::Context) {
         self.time += delta;
-        let secs = self.time.as_secs() as f32;
-        data.camera.orientation = quaternion::Quaternion::new(0.0, 0.0, secs / 10.0, secs / 10.0);
+        let secs = self.time.as_millis() as f32 / 1000.0;
+        let vec = Vec3::new(0.0, 0.0, 1.0);
+        let theta = (secs * 10.0 * PI / 180.0).cos();
+        println!("{:.3}, {}", secs, theta);
+        data.camera.orientation = quaternion::Quaternion::from_two(theta, vec);
     }
 }
 

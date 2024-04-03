@@ -19,7 +19,7 @@ impl Camera {
         Self {
             view: identity(),
             projection: perspective(aspect, 45.0, 0.1, 100.0),
-            orientation: Quaternion::new(0.0, 0.0, 0.0, 0.0),
+            orientation: Quaternion::new(0.0, 0.0, 0.0, 1.0),
             p: false,
         }
     }

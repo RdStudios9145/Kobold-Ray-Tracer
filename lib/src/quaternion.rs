@@ -1,4 +1,4 @@
-use glm::Mat4;
+use glm::{ Mat4, Vec3 };
 
 #[derive(Debug, Clone)]
 pub struct Quaternion {
@@ -16,6 +16,18 @@ impl Quaternion {
     }
 
     // pub fn from
+
+    pub fn from_two(l: f32, v: Vec3) -> Self {
+        let mut ret = Self {
+            l,
+            i: v.x,
+            j: v.y,
+            k: v.z,
+        };
+
+        ret.normalize();
+        ret
+    }
 
     pub fn to_matrix(&self) -> Mat4 {
         let q0 = self.l;
@@ -39,5 +51,14 @@ impl Quaternion {
             r10, r11, r12, 0.0,
             r20, r21, r22, 0.0,
             0.0, 0.0, 0.0, 1.0)
+    }
+
+    pub fn normalize(&mut self) -> &mut Self {
+        let mag = (self.i * self.i + self.j * self.j + self.k * self.k + self.l * self.l).sqrt();
+        self.i /= mag;
+        self.j /= mag;
+        self.k /= mag;
+        self.l /= mag;
+        self
     }
 }
