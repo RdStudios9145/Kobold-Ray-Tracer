@@ -1,4 +1,4 @@
-use glm::{ Mat4, Vec3 };
+use glm::{ Mat4, Mat3, Vec3 };
 use std::ops::Mul;
 
 #[derive(Debug, Clone, Copy)]
@@ -30,7 +30,7 @@ impl Quaternion {
         ret
     }
 
-    pub fn to_matrix(&self) -> Mat4 {
+    pub fn to_matrix3(&self) -> Mat3 {
         let q0 = self.l;
         let q1 = self.i;
         let q2 = self.j;
@@ -48,9 +48,17 @@ impl Quaternion {
         let r21 = 2.0 * (q2 * q3 + q0 * q1);
         let r22 = 2.0 * (q0 * q0 + q3 * q3) - 1.0;
 
-        Mat4::new(r00, r01, r02, 0.0,
-            r10, r11, r12, 0.0,
-            r20, r21, r22, 0.0,
+        Mat3::new(r00, r01, r02,
+            r10, r11, r12,
+            r20, r21, r22)
+    }
+
+    pub fn to_matrix(&self) -> Mat4 {
+        let mat = self.to_matrix3();
+
+        Mat4::new(mat[(0, 0)], mat[(1, 0)], mat[(2, 0)], 0.0,
+            mat[(0, 1)], mat[(1, 1)], mat[(2, 1)], 0.0,
+            mat[(0, 2)], mat[(1, 2)], mat[(2, 2)], 0.0,
             0.0, 0.0, 0.0, 1.0)
     }
 

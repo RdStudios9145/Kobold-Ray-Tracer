@@ -17,7 +17,6 @@ pub struct Camera {
 
 impl Camera {
     pub fn new(aspect: f32) -> Self {
-        let one = Vec4::new(1.0, 1.0, 1.0, 1.0);
         Self {
             view: identity(),
             projection: perspective(aspect, 45.0, 0.1, 100.0),
@@ -50,10 +49,11 @@ impl Camera {
         }
 
         if !self.p {
-            println!("{:?}, v{:?}, p{:?}, p{:?}, pv{:?}, {:?}\n",
+            println!("{:?}, v{:?}, p{:?}, p{:?}, pv{:?}, rpv{:?}, {:?}\n",
                 vec3(0.5, 0.5, -1.0), flatten(self.view), flatten(self.projection),
                 self.view * vec4(0.5, 0.5, -1.0, 1.0),
                 self.projection * self.view * vec4(0.5, 0.5, -1.0, 1.0),
+                self.orientation.to_matrix() * self.projection * self.view * vec4(0.5, 0.5, -1.0, 1.0),
                 self.projection);
             self.p = true;
         }

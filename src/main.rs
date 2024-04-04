@@ -1,12 +1,14 @@
-#[hot_lib_reloader::hot_module(dylib = "lib")]
-mod hot {
-    hot_functions_from_file!("lib/src/lib.rs");
-    pub use lib::*;
-}
-
-use hot::*;
+// #[hot_lib_reloader::hot_module(dylib = "lib")]
+// mod hot {
+//     hot_functions_from_file!("lib/src/lib.rs");
+//     pub use lib::*;
+// }
+// 
+// use hot::*;
 use std::time::Duration;
-use hot::camera::*;
+// use hot::camera::*;
+use lib::*;
+use lib::camera::*;
 
 const PI: f64 = 3.14159265358979323;
 
@@ -66,11 +68,13 @@ impl Program for Game {
                 self.cursor_pos = (x, y);
 
                 if self.mouse_locked {
-                    context.camera.rotate(quaternion::Quaternion::from_two((delta.0 / 100.0 / PI) as f32, vec3(0.0, 1.0, 0.0)));
+                    context.camera.rotate(quaternion::Quaternion::from_euler(0., (delta.0 / 100.0 / PI) as f32, 0.));
+                    let vec = context.camera.orientation.to_matrix3() * vec3(1.0, 0.0, 0.0);
+                    context.camera.rotate(quaternion::Quaternion::from_two(-(delta.1 / 100.0 / PI) as f32, vec));
                 }
 
                 println!("{:?}, {:?}", delta, context.camera.orientation);
-                println!("{:?}", context.camera.orientation.to_matrix());
+                // println!("{:?}", context.camera.orientation.to_matrix());
             }
             _ => {}
         };
@@ -84,6 +88,11 @@ impl Program for Game {
 }
 
 fn main() {
+    let q1 = quaternion::Quaternion::from_two((0.01 / PI) as f32, vec3(0., 1., 0.));
+    let q2 = q1 * q1;
+    println!("1: {:?}, 2: {:?}", q1, q2);
+    // return;
+
     let mut app = App::new();
     let mut game = Game::default();
     app.run(&mut game, "Test Game!", (800, 600));
