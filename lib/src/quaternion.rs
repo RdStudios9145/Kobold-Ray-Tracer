@@ -1,6 +1,7 @@
 use glm::{ Mat4, Vec3 };
+use std::ops::Mul;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct Quaternion {
     i: f32,
     j: f32,
@@ -75,6 +76,19 @@ impl Quaternion {
             i: sr * cp * cy - cr * sp * sy,
             j: cr * sp * cy + sr * cp * sy,
             k: cr * cp * sy - sr * sp * cy,
+        }
+    }
+}
+
+impl Mul for Quaternion {
+    type Output = Self;
+
+    fn mul(self, rhs: Self) -> Self {
+        Self {
+            l: self.l * rhs.l - self.i * rhs.i - self.j * rhs.j - self.k * rhs.k,
+            i: self.l * rhs.i + self.i * rhs.l + self.j * rhs.k - self.k * rhs.j,
+            j: self.l * rhs.j - self.i * rhs.k + self.j * rhs.l + self.k * rhs.i,
+            k: self.l * rhs.k + self.i * rhs.j - self.j * rhs.i + self.k * rhs.l,
         }
     }
 }

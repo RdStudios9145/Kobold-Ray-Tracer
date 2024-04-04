@@ -5,6 +5,8 @@ use crate::{flatten::flatten, shader::ShaderProgram, quaternion::Quaternion};
 
 use std::ffi::CString;
 
+pub use crate::rotatable::Rotatable;
+
 #[derive(Clone)]
 pub struct Camera {
     pub(super) view: Mat4,
@@ -56,4 +58,9 @@ impl Camera {
             self.p = true;
         }
     }
+}
+
+impl Rotatable for Camera {
+    fn set_orientation(&mut self, q: Quaternion) { self.orientation = q }
+    fn get_orientation(&self) -> Quaternion { self.orientation }
 }

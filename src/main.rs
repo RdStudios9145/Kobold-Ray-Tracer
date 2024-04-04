@@ -6,13 +6,15 @@ mod hot {
 
 use hot::*;
 use std::time::Duration;
+use hot::camera::*;
 
-const PI: f32 = 3.14159265358979323;
+const PI: f64 = 3.14159265358979323;
 
 #[derive(Default)]
 struct Game {
     mouse_locked: bool,
     time: Duration,
+    cursor_pos: (f64, f64),
 }
 
 impl Program for Game {
@@ -58,6 +60,17 @@ impl Program for Game {
                 }
 
                 self.mouse_locked = true;
+            },
+            WindowEvent::CursorPos(x, y) => {
+                let delta = (self.cursor_pos.0 - x, self.cursor_pos.1 - y);
+                self.cursor_pos = (x, y);
+
+                if self.mouse_locked {
+                    context.camera.rotate(quaternion::Quaternion::from_two((delta.0 / 100.0 / PI) as f32, vec3(0.0, 1.0, 0.0)));
+                }
+
+                println!("{:?}, {:?}", delta, context.camera.orientation);
+                println!("{:?}", context.camera.orientation.to_matrix());
             }
             _ => {}
         };
@@ -66,11 +79,7 @@ impl Program for Game {
     fn on_update(&mut self, delta: Duration, data: &mut context::Context) {
         self.time += delta;
         let secs = self.time.as_millis() as f32 / 1000.0;
-        let vec = Vec3::new(0.0, 0.0, 1.0);
-        let theta = (secs * 10.0 * PI / 180.0).cos();
-        println!("{:.3}, {}", secs, theta);
-        // data.camera.orientation = quaternion::Quaternion::from_two(secs, vec);
-        data.camera.orientation = quaternion::Quaternion::from_euler(0.0, 0.0, secs);
+        // data.camera.orientation = quaternion::Quaternion::from_euler(0.0, 0.0, secs);
     }
 }
 

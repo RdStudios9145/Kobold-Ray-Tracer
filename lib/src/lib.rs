@@ -23,6 +23,7 @@ pub mod scene;
 pub mod shader;
 pub mod vertexarray;
 pub mod quaternion;
+pub mod rotatable;
 
 use shader::ShaderProgram;
 use camera::Camera;
