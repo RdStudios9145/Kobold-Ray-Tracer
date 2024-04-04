@@ -69,7 +69,8 @@ impl Program for Game {
         let vec = Vec3::new(0.0, 0.0, 1.0);
         let theta = (secs * 10.0 * PI / 180.0).cos();
         println!("{:.3}, {}", secs, theta);
-        data.camera.orientation = quaternion::Quaternion::from_two(theta, vec);
+        // data.camera.orientation = quaternion::Quaternion::from_two(secs, vec);
+        data.camera.orientation = quaternion::Quaternion::from_euler(0.0, 0.0, secs);
     }
 }
 

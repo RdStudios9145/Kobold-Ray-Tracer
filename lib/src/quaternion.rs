@@ -61,4 +61,20 @@ impl Quaternion {
         self.l /= mag;
         self
     }
+
+    pub fn from_euler(roll: f32, pitch: f32, yaw: f32) -> Self {
+        let cr = (roll / 2.0).cos();
+        let sr = (roll / 2.0).sin();
+        let cp = (pitch / 2.0).cos();
+        let sp = (pitch / 2.0).sin();
+        let cy = (yaw / 2.0).cos();
+        let sy = (yaw / 2.0).sin();
+
+        Self {
+            l: cr * cp * cy + sr * sp * sy,
+            i: sr * cp * cy - cr * sp * sy,
+            j: cr * sp * cy + sr * cp * sy,
+            k: cr * cp * sy - sr * sp * cy,
+        }
+    }
 }
