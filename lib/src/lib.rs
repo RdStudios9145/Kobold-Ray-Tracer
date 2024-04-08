@@ -110,7 +110,7 @@ impl App {
             for (_, event) in glfw::flush_messages(&events) {
                 match event {
                     glfw::WindowEvent::Close => context.window.set_should_close(true),
-                    glfw::WindowEvent::ContentScale(w, h) => unsafe {
+                    glfw::WindowEvent::Size(w, h) => unsafe {
                         Viewport(0, 0, w as i32, h as i32);
                         program.on_event(event, &mut context);
                     },

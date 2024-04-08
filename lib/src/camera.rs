@@ -7,11 +7,12 @@ use std::ffi::CString;
 
 pub use crate::rotatable::Rotatable;
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct Camera {
     pub(super) view: Mat4,
     pub(super) projection: Mat4,
     pub orientation: Quaternion,
+    pub position: Vec3,
     p: bool,
 }
 
@@ -21,11 +22,13 @@ impl Camera {
             view: identity(),
             projection: perspective(aspect, 45.0, 0.1, 100.0),
             orientation: Quaternion::new(0.0, 0.0, 0.0, 1.0),
-            p: false,
+            position: vec3(0., 0., 0.),
+            p: true,
         }
     }
 
     pub fn translate(&mut self, translation: Vec3) -> &mut Self {
+        self.position += translation;
         let translation = translation * -1.0;
         self.view = translate(&self.view, &translation);
         self
@@ -63,4 +66,5 @@ impl Camera {
 impl Rotatable for Camera {
     fn set_orientation(&mut self, q: Quaternion) { self.orientation = q }
     fn get_orientation(&self) -> Quaternion { self.orientation }
+    fn normalize(&mut self) { self.orientation.normalize(); }
 }

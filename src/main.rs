@@ -10,13 +10,14 @@ use std::time::Duration;
 use lib::*;
 use lib::camera::*;
 
-const PI: f64 = 3.14159265358979323;
+const PI: f32 = 3.14159265358979323;
 
 #[derive(Default)]
 struct Game {
     mouse_locked: bool,
     time: Duration,
     cursor_pos: (f64, f64),
+    frames: u32,
 }
 
 impl Program for Game {
@@ -30,16 +31,24 @@ impl Program for Game {
     fn on_event(&mut self, ev: WindowEvent, context: &mut context::Context) {
         match ev {
             WindowEvent::Key(Key::W, _, _, _) => {
-                context.camera.translate(vec3(0.0, 0.0, -1.0));
+                let mut vec = context.camera.orientation.to_matrix3() * vec3(0.0, 0.0, -1.0);
+                vec.y = 0.;
+                context.camera.translate(vec);
             },
             WindowEvent::Key(Key::S, _, _, _) => {
-                context.camera.translate(vec3(0.0, 0.0, 1.0));
+                let mut vec = context.camera.orientation.to_matrix3() * vec3(0.0, 0.0, 1.0);
+                vec.y = 0.;
+                context.camera.translate(vec);
             },
             WindowEvent::Key(Key::A, _, _, _) => {
-                context.camera.translate(vec3(-1.0, 0.0, 0.0));
+                let mut vec = context.camera.orientation.to_matrix3() * vec3(-1.0, 0.0, 0.0);
+                vec.y = 0.;
+                context.camera.translate(vec);
             },
             WindowEvent::Key(Key::D, _, _, _) => {
-                context.camera.translate(vec3(1.0, 0.0, 0.0));
+                let mut vec = context.camera.orientation.to_matrix3() * vec3(1.0, 0.0, 0.0);
+                vec.y = 0.;
+                context.camera.translate(vec);
             },
             WindowEvent::Key(Key::Space, _, _, _) => {
                 context.camera.translate(vec3(0.0, 1.0, 0.0));
@@ -64,17 +73,23 @@ impl Program for Game {
                 self.mouse_locked = true;
             },
             WindowEvent::CursorPos(x, y) => {
-                let delta = (self.cursor_pos.0 - x, self.cursor_pos.1 - y);
+                let delta: (f32, f32) = (self.cursor_pos.0 as f32 - x as f32, self.cursor_pos.1 as f32 - y as f32);
                 self.cursor_pos = (x, y);
 
                 if self.mouse_locked {
-                    context.camera.rotate(quaternion::Quaternion::from_euler(0., (delta.0 / 100.0 / PI) as f32, 0.));
+                    context.camera.rotate(quaternion::Quaternion::from_euler(0., delta.0 / 1800. * PI, 0.));
                     let vec = context.camera.orientation.to_matrix3() * vec3(1.0, 0.0, 0.0);
-                    context.camera.rotate(quaternion::Quaternion::from_two(-(delta.1 / 100.0 / PI) as f32, vec));
+                    context.camera.rotate(quaternion::Quaternion::from_two(delta.1 / 1800. * PI, vec));
                 }
+            },
+            WindowEvent::Key(Key::F12, _, _, _) => {
 
-                println!("{:?}, {:?}", delta, context.camera.orientation);
-                // println!("{:?}", context.camera.orientation.to_matrix());
+            },
+            WindowEvent::Size(w, h) => {
+                let cam = context.camera;
+                context.camera = camera::Camera::new(w as f32 / h as f32);
+                context.camera.orientation = cam.orientation;
+                context.camera.translate(cam.position);
             }
             _ => {}
         };
@@ -82,17 +97,17 @@ impl Program for Game {
 
     fn on_update(&mut self, delta: Duration, data: &mut context::Context) {
         self.time += delta;
-        let secs = self.time.as_millis() as f32 / 1000.0;
-        // data.camera.orientation = quaternion::Quaternion::from_euler(0.0, 0.0, secs);
+
+        if self.time.as_secs() >= 1 {
+            println!("FPS: {}", self.frames);
+            self.frames = 0;
+            self.time = Duration::from_secs(0);
+        }
+        self.frames += 1;
     }
 }
 
 fn main() {
-    let q1 = quaternion::Quaternion::from_two((0.01 / PI) as f32, vec3(0., 1., 0.));
-    let q2 = q1 * q1;
-    println!("1: {:?}, 2: {:?}", q1, q2);
-    // return;
-
     let mut app = App::new();
     let mut game = Game::default();
     app.run(&mut game, "Test Game!", (800, 600));
@@ -101,18 +116,9 @@ fn main() {
 fn create_scene() -> scene::Scene {
     let mut scene = scene::Scene::new();
 
-    let verts = &vec![
-        [-1.0,  1.0, -1.0],
-        [ 1.0,  1.0, -1.0],
-        [ 1.0, -1.0, -1.0],
-        [-1.0, -1.0, -1.0],
-        [-1.0,  1.0,  1.0],
-        [ 1.0,  1.0,  1.0],
-        [ 1.0, -1.0,  1.0],
-        [-1.0, -1.0,  1.0],
-    ];
-    let indicies = &vec![[0, 1, 3], [1, 2, 3], [0, 7, 4], [0, 3, 7], [5, 4, 6], [4, 7, 6], [1, 5, 2], [5, 6, 2], [4, 5, 0], [5, 1, 0], [3, 2, 7], [2, 6, 7]];
-    scene.add_object(object::Object::new(verts.to_vec(), indicies.to_vec()));
+    // scene.add_object(object::Object::new_sphere(vec3(0., 0., 0.), vec3(2., 2., 2.)));
+    scene.add_object(object::Object::new_sphere(vec3(0., 0., 0.), 1.));
+    // scene.add_object(object::Object::new_sphere(vec3(0., 0., 0.), 2.));
     scene.add_object(object::Object::new(
         vec![[0.0, 1.0, -10.0], [1.0, 1.0, -10.0], [1.0, 0.0, -10.0]],
         vec![[0, 1, 2]],

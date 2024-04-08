@@ -18,12 +18,16 @@ impl Quaternion {
 
     // pub fn from
 
-    pub fn from_two(l: f32, v: Vec3) -> Self {
+    pub fn from_two(l: f32, mut v: Vec3) -> Self {
+        v = v.normalize();
+
+        let s = (l / 2.).sin();
+
         let mut ret = Self {
-            l,
-            i: v.x,
-            j: v.y,
-            k: v.z,
+            l: (l / 2.).cos(),
+            i: v.x * s,
+            j: v.y * s,
+            k: v.z * s,
         };
 
         ret.normalize();
@@ -79,12 +83,15 @@ impl Quaternion {
         let cy = (yaw / 2.0).cos();
         let sy = (yaw / 2.0).sin();
 
-        Self {
+        let mut ret = Self {
             l: cr * cp * cy + sr * sp * sy,
             i: sr * cp * cy - cr * sp * sy,
             j: cr * sp * cy + sr * cp * sy,
             k: cr * cp * sy - sr * sp * cy,
-        }
+        };
+
+        ret.normalize();
+        ret
     }
 }
 
