@@ -1,5 +1,5 @@
-use gl::{types::GLchar, GetUniformLocation, UniformMatrix4fv, UseProgram, FALSE, TRUE};
-use glm::{perspective, translate, Mat4, Vec3, Vec4, identity, vec4, vec3};
+use gl::{GetUniformLocation, UniformMatrix4fv, FALSE};
+use glm::{perspective, translate, Mat4, Vec3, identity, vec4, vec3};
 
 use crate::{flatten::flatten, shader::ShaderProgram, quaternion::Quaternion};
 

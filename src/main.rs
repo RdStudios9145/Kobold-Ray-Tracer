@@ -5,7 +5,7 @@
 // }
 // 
 // use hot::*;
-use std::time::Duration;
+use std::{ fs, time::Duration };
 // use hot::camera::*;
 use lib::*;
 use lib::camera::*;
@@ -95,7 +95,7 @@ impl Program for Game {
         };
     }
 
-    fn on_update(&mut self, delta: Duration, data: &mut context::Context) {
+    fn on_update(&mut self, delta: Duration, _context: &mut context::Context) {
         self.time += delta;
 
         if self.time.as_secs() >= 1 {
@@ -108,6 +108,17 @@ impl Program for Game {
 }
 
 fn main() {
+    let width = 256;
+    let height = 256;
+
+    let mut buff = format!("P3\n{width} {height}\n255\n");
+
+    for i in 0..width {
+        for j in 0..height {
+            buff += format!("{} {} 0\n", 255. * j as f32 / (width as f32 - 1.), 255. * i as f32 / (width as f32 - 1.)).as_str();
+        }
+    }
+    fs::write("test.ppm", buff).unwrap();
     let mut app = App::new();
     let mut game = Game::default();
     app.run(&mut game, "Test Game!", (800, 600));

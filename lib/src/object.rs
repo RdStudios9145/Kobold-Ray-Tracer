@@ -55,6 +55,11 @@ impl Object {
             [-t,  0.,  1.]
         ];
 
+        let mut verts = Vec::new();
+        for vert in initial_verts.iter() {
+            verts.push([vert[0] * radius + center.x, vert[1] * radius + center.y, vert[2] * radius + center.z]);
+        }
+
         let indicies = vec![
             [0, 11, 5],
             [0, 5, 1],
@@ -79,7 +84,7 @@ impl Object {
         ];
 
         Self {
-            verts: initial_verts,
+            verts,
             indicies,
             vao_id: 0,
             vbo_id: 0,
