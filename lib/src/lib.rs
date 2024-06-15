@@ -11,12 +11,15 @@ use std::time::SystemTime;
 use glfw::{fail_on_errors, Glfw, OpenGlProfileHint, WindowHint};
 use prelude::*;
 
+extern crate nalgebra_glm as glm;
+
 r#macro::use_backend!(Window);
 
 pub struct App {
     scenes: Vec<Scene>,
     windows: Vec<Window>,
     glfw: Glfw,
+    pub object_manager: ObjectManager,
 }
 
 impl App {
@@ -39,6 +42,7 @@ impl App {
             scenes,
             windows: Vec::new(),
             glfw,
+            object_manager: ObjectManager::new(),
         }
     }
 
@@ -60,11 +64,23 @@ impl App {
             if !self.windows.is_empty() {
                 self.glfw.poll_events();
 
-                for window in &mut self.windows {
-                    window.poll_events(&self.scenes);
+                let mut marked: Vec<usize> = Vec::new();
+
+                for (i, window) in &mut self.windows.iter_mut().enumerate() {
+                    window.poll_events(&mut self.scenes);
+
+                    if window.should_close() {
+                        marked.push(i)
+                    }
+                }
+
+                for i in marked {
+                    let window = self.windows.remove(i);
+                    window.destroy();
                 }
 
                 for window in &mut self.windows {
+                    window.update(&mut self.scenes, delta);
                     window.render(&self.scenes);
                 }
             }
@@ -97,7 +113,7 @@ pub struct WindowOptions {
     pub title: String,
 }
 
-mod r#macro {
+pub(crate) mod r#macro {
     macro_rules! use_backend {
         ($includes: ident) => {
             #[allow(unused_imports)]
