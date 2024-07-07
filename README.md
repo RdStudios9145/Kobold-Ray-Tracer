@@ -12,6 +12,9 @@ The Kobold Engine is compiled into a dll, which the program includes and calls i
 
 `Program` will define empty event and update listeners, which you can override with on_update and on_event.
 
+> [!WARNING]
+> Due to the rewrite, no example code will work properly until it is a reasonable state
+
 Example:
 
 ```rust
