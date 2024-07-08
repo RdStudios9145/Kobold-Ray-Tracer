@@ -1,3 +1,4 @@
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use glfw::{Context, Glfw, GlfwReceiver, PWindow, WindowEvent};
@@ -13,7 +14,7 @@ pub struct Window {
 
 impl Window {
     pub fn new(opts: WindowOptions, glfw: &mut Glfw) -> Window {
-        let (window, events) = glfw
+        let (mut window, events) = glfw
             .create_window(
                 opts.width.try_into().unwrap(),
                 opts.height.try_into().unwrap(),
@@ -21,6 +22,9 @@ impl Window {
                 glfw::WindowMode::Windowed,
             )
             .unwrap_or_else(|| panic!("Unable to create window {}", &opts.title));
+
+        let win = Arc::new(Mutex::new(&mut window));
+        gl::load_with(|s| win.lock().unwrap().get_proc_address(s));
 
         Window {
             opts,
@@ -46,14 +50,21 @@ impl Window {
                 WindowEvent::Close => self.window.set_should_close(true),
                 WindowEvent::Size(w, h) => unsafe {
                     gl::Viewport(0, 0, w, h);
-                    if let Some(on_event) = &scene.on_event {
-                        (on_event)(event);
+
+                    if scene.on_event.is_none() {
+                        continue;
                     }
+
+                    let on_event = scene.on_event.as_mut().unwrap().clone();
+                    (on_event)(&mut self.opts.scene, &mut self.opts.title, scene, event);
                 },
                 _ => {
-                    if let Some(on_event) = &scene.on_event {
-                        (on_event)(event);
+                    if scene.on_event.is_none() {
+                        continue;
                     }
+
+                    let on_event = scene.on_event.as_mut().unwrap().clone();
+                    (on_event)(&mut self.opts.scene, &mut self.opts.title, scene, event);
                 }
             }
         }
@@ -66,23 +77,38 @@ impl Window {
 
         let scene = &mut scenes[self.opts.scene];
 
-        if let Some(dummy_update) = &scene.on_update {
-            let on_update = dummy_update.clone();
-
-            (on_update)(
-                &mut self.opts.scene,
-                &mut self.opts.title,
-                &mut scenes[self.opts.scene.clone()],
-                delta,
-            );
+        if scene.on_update.is_none() {
+            return;
         }
+
+        let on_update = scene.on_update.as_mut().unwrap().clone();
+
+        (on_update)(&mut self.opts.scene, &mut self.opts.title, scene, delta);
     }
 
     pub(crate) fn render(&mut self, scenes: &[Scene]) {
         if self.opts.scene >= scenes.len() {
             return;
         }
+
         let scene = &scenes[self.opts.scene];
+
+        self.window.make_current();
+
+        if scene.clear_color_dirty {
+            let red = scene.clear_color.0;
+            let green = scene.clear_color.1;
+            let blue = scene.clear_color.2;
+            let alpha = scene.clear_color.3;
+
+            unsafe {
+                gl::ClearColor(red, green, blue, alpha);
+            }
+        }
+
+        unsafe {
+            gl::Clear(gl::COLOR_BUFFER_BIT);
+        }
     }
 }
 

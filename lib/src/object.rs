@@ -5,6 +5,11 @@ use crate::Quaternion;
 pub type Vertex = [f32; 3];
 pub type TriangleIndecies = Vertex;
 
+pub enum Primitive {
+    Sphere = 0,
+    Cube,
+}
+
 pub(crate) struct ObjectType {
     verts: Vec<Vertex>,
     tris: Vec<TriangleIndecies>,
@@ -21,6 +26,12 @@ pub(crate) struct Object {
     pub position: Vec3,
     pub orientation: Quaternion,
     pub scale: Vec3,
+}
+
+impl From<Primitive> for usize {
+    fn from(p: Primitive) -> Self {
+        p as usize
+    }
 }
 
 impl ObjectManager {

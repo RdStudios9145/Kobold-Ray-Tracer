@@ -9,9 +9,9 @@ mod scene;
 use std::time::SystemTime;
 
 use glfw::{fail_on_errors, Glfw, OpenGlProfileHint, WindowHint};
-use prelude::*;
+pub use prelude::*;
 
-extern crate nalgebra_glm as glm;
+pub extern crate nalgebra_glm as glm;
 
 r#macro::use_backend!(Window);
 
@@ -46,7 +46,13 @@ impl App {
         }
     }
 
-    pub fn creat_window(&mut self, opts: WindowOptions) {
+    pub fn register_scene(&mut self, scene: Scene) -> usize {
+        let id = self.scenes.len();
+        self.scenes.push(scene);
+        id
+    }
+
+    pub fn create_window(&mut self, opts: WindowOptions) {
         let mut window = Window::new(opts, &mut self.glfw);
 
         window.make_current();
@@ -101,7 +107,7 @@ impl App {
         }
 
         // something is going wrong if this is the return point, safe to quit
-        return true;
+        true
     }
 }
 
