@@ -2,29 +2,34 @@ use glfw::WindowEvent;
 use glm::Vec3;
 
 use crate::{Camera, Object, Quaternion};
-use std::{sync::Arc, time::Duration};
+use std::{
+    sync::{Arc, Mutex},
+    time::Duration,
+};
+
+use crate::r#macro;
+r#macro::use_backend!(Window);
 
 macro_rules! function {
     ($type: ty) => {
-        //                Current Window Scene ID, Window Title, Current Scene
-        Option<Arc<dyn Fn(&mut usize,              &mut str,     &mut Scene,    $type) + 'static>>
+        Option<Arc<Mutex<dyn FnMut(&mut Window, &mut Scene,    $type) + 'static>>>
     };
 }
 
 // Scenes are not marked as dirty because they need window specific information. If there are
 // multiple windows open on one scene, the scene will be updated twice
 pub struct Scene {
-    objects: Vec<Object>,
-    camera: Camera,
-    pub(crate) on_update: function!(Duration),
-    pub(crate) on_event: function!(WindowEvent),
+    pub(crate) objects: Vec<Object>,
+    pub camera: Camera,
+    pub on_update: function!(Duration),
+    pub on_event: function!(WindowEvent),
     pub(crate) clear_color: (f32, f32, f32, f32),
     pub(crate) clear_color_dirty: bool,
 }
 
 impl Scene {
-    pub fn new(aspect: f32) -> Self {
-        Self {
+    pub fn new(aspect: f32) -> Scene {
+        Scene {
             objects: Vec::new(),
             camera: Camera::new(aspect),
             on_update: None,

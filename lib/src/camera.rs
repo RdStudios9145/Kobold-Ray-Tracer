@@ -1,13 +1,13 @@
 use crate::Quaternion;
-use glm::{identity, perspective, translate, vec3, vec4, Mat4, Vec3, Vec4};
+use glm::{identity, perspective, translate, vec3, Mat4, Vec3};
 
+#[allow(dead_code)]
 #[derive(Clone, Copy)]
 pub struct Camera {
     pub(super) view: Mat4,
     pub(super) projection: Mat4,
     pub orientation: Quaternion,
     pub position: Vec3,
-    p: bool,
 }
 
 impl Camera {
@@ -17,7 +17,6 @@ impl Camera {
             projection: perspective(aspect, 45.0, 0.1, 100.0),
             orientation: Quaternion::new(0.0, 0.0, 0.0, 1.0),
             position: vec3(0., 0., 0.),
-            p: true,
         }
     }
 
@@ -25,6 +24,12 @@ impl Camera {
         self.position += translation;
         let translation = translation * -1.0;
         self.view = translate(&self.view, &translation);
+        self
+    }
+
+    pub fn rotate(&mut self, rotation: Quaternion) -> &mut Self {
+        self.orientation *= rotation;
+        self.orientation.normalize();
         self
     }
 }

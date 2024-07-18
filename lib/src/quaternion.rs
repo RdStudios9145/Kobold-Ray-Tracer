@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use glm::{Mat3, Mat4, Vec3};
-use std::ops::Mul;
+use std::ops::{Mul, MulAssign};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Quaternion {
@@ -117,5 +117,11 @@ impl Mul for Quaternion {
             j: self.l * rhs.j - self.i * rhs.k + self.j * rhs.l + self.k * rhs.i,
             k: self.l * rhs.k + self.i * rhs.j - self.j * rhs.i + self.k * rhs.l,
         }
+    }
+}
+
+impl MulAssign for Quaternion {
+    fn mul_assign(&mut self, rhs: Self) {
+        *self = *self * rhs;
     }
 }

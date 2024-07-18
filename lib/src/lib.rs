@@ -1,5 +1,6 @@
 #[allow(non_snake_case)]
 mod Backend;
+mod buffer;
 mod camera;
 mod object;
 mod prelude;
@@ -11,15 +12,15 @@ use std::time::SystemTime;
 use glfw::{fail_on_errors, Glfw, OpenGlProfileHint, WindowHint};
 pub use prelude::*;
 
+pub extern crate glfw;
 pub extern crate nalgebra_glm as glm;
 
-r#macro::use_backend!(Window);
+r#macro::use_backend!(pub, Window);
 
 pub struct App {
     scenes: Vec<Scene>,
     windows: Vec<Window>,
     glfw: Glfw,
-    pub object_manager: ObjectManager,
 }
 
 impl App {
@@ -42,7 +43,6 @@ impl App {
             scenes,
             windows: Vec::new(),
             glfw,
-            object_manager: ObjectManager::new(),
         }
     }
 
@@ -87,7 +87,7 @@ impl App {
 
                 for window in &mut self.windows {
                     window.update(&mut self.scenes, delta);
-                    window.render(&self.scenes);
+                    window.render(&mut self.scenes);
                 }
             }
         }
@@ -120,17 +120,29 @@ pub struct WindowOptions {
 }
 
 pub(crate) mod r#macro {
-    macro_rules! use_backend {
-        ($includes: ident) => {
+    #[macro_export]
+    macro_rules! _use_backend {
+        ($vis: vis, $includes: ident) => {
             #[allow(unused_imports)]
             #[cfg(feature = "vulcan")]
-            use Backend::Vulcan::$includes;
+            $vis use $crate::Backend::Vulcan::$includes;
 
             #[allow(unused_imports)]
             #[cfg(not(feature = "vulcan"))]
-            use Backend::OpenGL::$includes;
+            $vis use $crate::Backend::OpenGL::$includes;
         };
     }
 
+    macro_rules! use_backend {
+        ($vis: vis, $includes: ident) => {
+            _use_backend!($vis, $includes);
+        };
+        ($includes: ident) => {
+            use crate::r#macro::_use_backend;
+            _use_backend!(, $includes);
+        }
+    }
+
+    pub(crate) use _use_backend;
     pub(crate) use use_backend;
 }
