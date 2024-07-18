@@ -47,6 +47,9 @@ fn generate_scenes(app: &mut App) {
         Quaternion::from_euler(0., 0., 0.),
     );
 
+    scene.camera.translate(vec3(0., 0., 5.));
+    scene.camera.rotate(Quaternion::from_euler(0., 0.1, 0.));
+
     scene.set_clear_color(0.2, 0.3, 0.3, 1.);
     set_listeners(&mut scene);
 
@@ -99,7 +102,7 @@ fn set_listeners(scene: &mut Scene) {
             mouse_locked = true;
         }
         WindowEvent::CursorPos(x, y) => {
-            let delta = (cursor_pos.0 - x as f32, cursor_pos.1 - y as f32);
+            let mut delta = (cursor_pos.0 - x as f32, cursor_pos.1 - y as f32);
             cursor_pos = (x as f32, y as f32);
 
             if mouse_locked {

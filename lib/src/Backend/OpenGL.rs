@@ -156,26 +156,31 @@ impl Window {
             //self.send_vec3("obj_scale", &obj.scale);
             //self.send_matrix("obj_rotation", &obj.orientation.as_matrix());
 
-            let scale_mat = {
-                let mut mat = Mat4::identity();
-                mat[0 * 4 + 0] = obj.scale.x;
-                mat[1 * 4 + 1] = obj.scale.y;
-                mat[2 * 4 + 2] = obj.scale.z;
-                mat
-            };
+            //let scale_mat = {
+            //    let mut mat = Mat4::identity();
+            //    mat[0 * 4 + 0] = obj.scale.x;
+            //    mat[1 * 4 + 1] = obj.scale.y;
+            //    mat[2 * 4 + 2] = obj.scale.z;
+            //    mat
+            //};
+            //
+            //let position_mat = {
+            //    let mut mat = Mat4::identity();
+            //    mat[0 * 4 + 3] = obj.position.x;
+            //    mat[1 * 4 + 3] = obj.position.y;
+            //    mat[2 * 4 + 3] = obj.position.z;
+            //    mat
+            //};
 
-            let position_mat = {
-                let mut mat = Mat4::identity();
-                mat[0 * 4 + 3] = obj.position.x;
-                mat[1 * 4 + 3] = obj.position.y;
-                mat[2 * 4 + 3] = obj.position.z;
-                mat
-            };
+            let mut position_mat = Mat4::identity();
+            position_mat = glm::translate(&position_mat, &obj.position);
 
-            self.send_matrix(
-                "obj_mat",
-                &(position_mat * obj.orientation.as_matrix() * scale_mat),
-            );
+            let rotation_mat = obj.orientation.as_matrix();
+
+            let mut scale_mat = Mat4::identity();
+            scale_mat = glm::scale(&scale_mat, &obj.scale);
+
+            self.send_matrix("obj_mat", &(position_mat * rotation_mat * scale_mat));
 
             unsafe {
                 gl::DrawElements(

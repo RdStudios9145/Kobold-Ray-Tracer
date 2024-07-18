@@ -28,7 +28,7 @@ impl Camera {
     }
 
     pub fn rotate(&mut self, rotation: Quaternion) -> &mut Self {
-        self.orientation *= rotation;
+        self.orientation = rotation * self.orientation;
         self.orientation.normalize();
         self
     }
