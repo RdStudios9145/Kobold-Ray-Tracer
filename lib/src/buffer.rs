@@ -13,6 +13,7 @@ pub enum BufferType {
 #[derive(Debug)]
 pub struct VertexArray(pub GLuint);
 
+#[derive(Debug)]
 pub struct Buffer {
     pub bo: GLuint,
     pub ty: BufferType,

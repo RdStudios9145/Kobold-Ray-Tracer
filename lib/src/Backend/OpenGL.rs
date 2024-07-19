@@ -6,9 +6,8 @@ use std::time::Duration;
 
 use gl::types::{GLenum, GLuint};
 use gl::{
-    EnableVertexAttribArray, VertexAttribPointer, COMPILE_STATUS, COMPUTE_SHADER, FALSE, FLOAT,
-    FRAGMENT_SHADER, INFO_LOG_LENGTH, LINK_STATUS, STATIC_DRAW, TRIANGLES, TRUE, UNSIGNED_INT,
-    VERTEX_SHADER,
+    COMPILE_STATUS, COMPUTE_SHADER, FALSE, FLOAT, FRAGMENT_SHADER, INFO_LOG_LENGTH, LINK_STATUS,
+    STATIC_DRAW, TRIANGLES, TRUE, UNSIGNED_INT, VERTEX_SHADER,
 };
 use glfw::{Context, CursorMode, Glfw, GlfwReceiver, PWindow, WindowEvent};
 use glm::{Mat4, Vec3, Vec4};
@@ -28,6 +27,7 @@ pub struct Window {
 #[derive(Debug)]
 pub(crate) struct ObjectInformation {
     vao: VertexArray,
+    inst_vbo: Buffer,
 }
 
 pub enum ShaderType {
@@ -59,6 +59,9 @@ impl Window {
             include_str!("fragment.glsl"),
         )
         .unwrap();
+
+        unsafe { gl::Enable(gl::DEPTH_TEST) };
+        glfw.set_swap_interval(glfw::SwapInterval::None);
 
         Window {
             opts,
@@ -145,22 +148,26 @@ impl Window {
         }
 
         unsafe {
-            gl::Clear(gl::COLOR_BUFFER_BIT);
+            gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         }
 
         for obj in &scene.objects {
             let ty = self.object_manager.from_id(obj.object_type);
             ty.info.vao.bind();
 
-            let mut position_mat = Mat4::identity();
-            position_mat = glm::translate(&position_mat, &obj.position);
+            //let mut position_mat = Mat4::identity();
+            //position_mat = glm::translate(&position_mat, &obj.position);
 
-            let rotation_mat = obj.orientation.as_matrix();
+            //let rotation_mat = obj.orientation.as_matrix();
 
-            let mut scale_mat = Mat4::identity();
-            scale_mat = glm::scale(&scale_mat, &obj.scale);
+            //let mut scale_mat = Mat4::identity();
+            //scale_mat = glm::scale(&scale_mat, &obj.scale);
 
-            self.send_matrix("obj_mat", &(position_mat * rotation_mat * scale_mat));
+            //self.send_matrix("obj_mat", &(position_mat * rotation_mat * scale_mat));
+
+            self.send_vec3("obj_position", &obj.position);
+            self.send_vec3("obj_scale", &obj.scale);
+            self.send_matrix("obj_rotation", &obj.orientation.as_matrix());
 
             self.send_vec4("color", &obj.color);
 
@@ -216,10 +223,10 @@ impl ObjectInformation {
 
         let vbo = Buffer::new(BufferType::Array)?;
         vbo.bind();
-        vbo.buffer_data(bytemuck::cast_slice(&obj.0), STATIC_DRAW);
+        vbo.buffer_data(bytemuck::cast_slice(obj.0), STATIC_DRAW);
 
         unsafe {
-            VertexAttribPointer(
+            gl::VertexAttribPointer(
                 0,
                 3,
                 FLOAT,
@@ -228,14 +235,56 @@ impl ObjectInformation {
                 std::ptr::null(),
                 //0 as *const _,
             );
-            EnableVertexAttribArray(0);
+            gl::EnableVertexAttribArray(0);
         }
 
         let ebo = Buffer::new(BufferType::ElementArray)?;
         ebo.bind();
         ebo.buffer_data(bytemuck::cast_slice(obj.1), STATIC_DRAW);
 
-        Some(Self { vao })
+        let inst_vbo = Buffer::new(BufferType::Array)?;
+        inst_vbo.bind();
+
+        unsafe {
+            //gl::VertexAttribPointer(
+            //    1,
+            //    4,
+            //    FLOAT,
+            //    FALSE,
+            //    4 * size_of::<Vec4>().try_into().unwrap(),
+            //    0 as *const _,
+            //);
+            //gl::EnableVertexAttribArray(1);
+            //gl::VertexAttribPointer(
+            //    2,
+            //    4,
+            //    FLOAT,
+            //    FALSE,
+            //    4 * size_of::<Vec4>().try_into().unwrap(),
+            //    size_of::<Vec4>() as *const _,
+            //);
+            //gl::EnableVertexAttribArray(2);
+            //gl::VertexAttribPointer(
+            //    3,
+            //    4,
+            //    FLOAT,
+            //    FALSE,
+            //    4 * size_of::<Vec4>().try_into().unwrap(),
+            //    (2 * size_of::<Vec4>()) as *const _,
+            //);
+            //gl::EnableVertexAttribArray(3);
+            //gl::VertexAttribPointer(
+            //    4,
+            //    4,
+            //    FLOAT,
+            //    FALSE,
+            //    4 * size_of::<Vec4>().try_into().unwrap(),
+            //    (3 * size_of::<Vec4>()) as *const _,
+            //);
+            //gl::EnableVertexAttribArray(4);
+        }
+
+        Some(Self { vao, inst_vbo })
     }
 }
 

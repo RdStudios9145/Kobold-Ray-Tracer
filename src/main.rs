@@ -49,6 +49,18 @@ fn generate_scenes(app: &mut App) {
         Vec4::new(1., 0., 0., 1.),
     );
 
+    for i in 0..100 {
+        for j in 0..100 {
+            scene.add_object(
+                Primitive::SPHERE,
+                Vec3::new(i as f32 + 5., 0., j as f32),
+                Vec3::new(0.5, 0.5, 0.5),
+                Quaternion::zero(),
+                Vec4::new(1.0, 0.0, 1.0, 1.0),
+            );
+        }
+    }
+
     scene.camera.translate(vec3(0., 0., 5.));
     scene.camera.rotate(Quaternion::from_euler(0., 0.1, 0.));
 

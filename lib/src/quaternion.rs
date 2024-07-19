@@ -16,6 +16,10 @@ impl Quaternion {
         Self { i, j, k, l }
     }
 
+    pub fn zero() -> Self {
+        Quaternion::from_euler(0.0, 0.0, 0.0)
+    }
+
     // pub fn from
 
     pub fn from_two(l: f32, mut v: Vec3) -> Self {
