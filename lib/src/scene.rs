@@ -1,5 +1,5 @@
 use glfw::WindowEvent;
-use glm::Vec3;
+use glm::{Vec3, Vec4};
 
 use crate::{Camera, Object, Quaternion};
 use std::{
@@ -45,6 +45,7 @@ impl Scene {
         position: Vec3,
         scale: Vec3,
         rotation: Quaternion,
+        color: Vec4,
     ) -> usize {
         let index = self.objects.len();
         self.objects.push(Object {
@@ -52,6 +53,7 @@ impl Scene {
             position,
             scale,
             orientation: rotation,
+            color,
         });
         index
     }

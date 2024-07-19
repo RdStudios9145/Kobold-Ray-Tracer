@@ -2,7 +2,7 @@ use std::{f32::consts::PI, time::Duration};
 
 use lib::{
     glfw,
-    glm::{vec3, Vec3},
+    glm::{vec3, Vec3, Vec4},
     App, Primitive, Quaternion, Scene, Window, WindowOptions,
 };
 
@@ -38,6 +38,7 @@ fn generate_scenes(app: &mut App) {
         Vec3::new(0., 5., 0.),
         Vec3::new(1., 1., 1.),
         Quaternion::from_euler(0., 0., 0.),
+        Vec4::new(1., 1., 1., 1.),
     );
 
     scene.add_object(
@@ -45,6 +46,7 @@ fn generate_scenes(app: &mut App) {
         Vec3::new(0., -5., 0.),
         Vec3::new(1., 1., 1.),
         Quaternion::from_euler(0., 0., 0.),
+        Vec4::new(1., 0., 0., 1.),
     );
 
     scene.camera.translate(vec3(0., 0., 5.));
@@ -124,5 +126,18 @@ fn set_listeners(scene: &mut Scene) {
         _ => {}
     };
 
+    let on_update = move |_: &mut Window, _: &mut Scene, delta: Duration| {
+        time += delta;
+
+        if time.as_secs() >= 1 {
+            println!("FPS: {}", frames);
+            frames = 0;
+            time = Duration::ZERO;
+        }
+
+        frames += 1;
+    };
+
     scene.on_event = Some(Arc::new(Mutex::new(on_event)));
+    scene.on_update = Some(Arc::new(Mutex::new(on_update)));
 }

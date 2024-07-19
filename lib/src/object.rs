@@ -1,4 +1,5 @@
 use glm::Vec3;
+use glm::Vec4;
 
 use crate::Quaternion;
 
@@ -34,6 +35,7 @@ pub(crate) struct Object {
     pub position: Vec3,
     pub orientation: Quaternion,
     pub scale: Vec3,
+    pub color: Vec4,
 }
 
 impl ObjectManager {

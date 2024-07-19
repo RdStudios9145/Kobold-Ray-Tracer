@@ -11,7 +11,7 @@ use gl::{
     VERTEX_SHADER,
 };
 use glfw::{Context, CursorMode, Glfw, GlfwReceiver, PWindow, WindowEvent};
-use glm::{vec4, Mat4, Vec3, Vec4};
+use glm::{Mat4, Vec3, Vec4};
 
 use crate::buffer::{Buffer, BufferType, VertexArray};
 use crate::{Camera, ObjectManager, Scene, TriangleIndecies, Vertex, WindowOptions};
@@ -152,26 +152,6 @@ impl Window {
             let ty = self.object_manager.from_id(obj.object_type);
             ty.info.vao.bind();
 
-            //self.send_vec3("obj_position", &obj.position);
-            //self.send_vec3("obj_scale", &obj.scale);
-            //self.send_matrix("obj_rotation", &obj.orientation.as_matrix());
-
-            //let scale_mat = {
-            //    let mut mat = Mat4::identity();
-            //    mat[0 * 4 + 0] = obj.scale.x;
-            //    mat[1 * 4 + 1] = obj.scale.y;
-            //    mat[2 * 4 + 2] = obj.scale.z;
-            //    mat
-            //};
-            //
-            //let position_mat = {
-            //    let mut mat = Mat4::identity();
-            //    mat[0 * 4 + 3] = obj.position.x;
-            //    mat[1 * 4 + 3] = obj.position.y;
-            //    mat[2 * 4 + 3] = obj.position.z;
-            //    mat
-            //};
-
             let mut position_mat = Mat4::identity();
             position_mat = glm::translate(&position_mat, &obj.position);
 
@@ -181,6 +161,8 @@ impl Window {
             scale_mat = glm::scale(&scale_mat, &obj.scale);
 
             self.send_matrix("obj_mat", &(position_mat * rotation_mat * scale_mat));
+
+            self.send_vec4("color", &obj.color);
 
             unsafe {
                 gl::DrawElements(
