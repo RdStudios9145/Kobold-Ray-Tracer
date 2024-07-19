@@ -85,6 +85,12 @@ fn set_listeners(scene: &mut Scene) {
             vec.y = 0.0;
             scene.camera.translate(vec);
         }
+        WindowEvent::Key(Key::Space, _, _, _) => {
+            scene.camera.translate(vec3(0.0, 1.0, 0.0));
+        }
+        WindowEvent::Key(Key::LeftShift, _, _, _) => {
+            scene.camera.translate(vec3(0.0, -1.0, 0.0));
+        }
         WindowEvent::Key(Key::Escape, _, glfw::Action::Release, _) => {
             if mouse_locked {
                 window.set_cursor_mode(glfw::CursorMode::Normal);
@@ -102,7 +108,7 @@ fn set_listeners(scene: &mut Scene) {
             mouse_locked = true;
         }
         WindowEvent::CursorPos(x, y) => {
-            let mut delta = (cursor_pos.0 - x as f32, cursor_pos.1 - y as f32);
+            let delta = (cursor_pos.0 - x as f32, cursor_pos.1 - y as f32);
             cursor_pos = (x as f32, y as f32);
 
             if mouse_locked {
